@@ -20,17 +20,10 @@ firebase.initializeApp(firebaseConfig);
 
 const db = admin.firestore();
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
-
 // function to get all the pharmacies in phamacy collection from database
 app.get('/pharmacy', (req, res) => {
     db
-        .collection('pharmacy')
+        .collection('pharmacies')
         .get()
         .then((data) => {
             let pharmacies = [];
@@ -51,10 +44,6 @@ app.get('/pharmacy', (req, res) => {
         })
         .catch((err) => console.error(err));
 })
-
-// exports.getPharmacies = functions.https.onRequest((req, res) => {
-
-// });
 
 // function to get all the patients in patients collection from database
 app.get('/patients', (req, res) => {
@@ -82,10 +71,6 @@ app.get('/patients', (req, res) => {
     })
     .catch((err) => console.log(err));
 })
-
-// exports.getPatients = functions.https.onRequest((req, res) => {
-    
-// });
 
 // function to get all the patients inside pharmacy collection
 
@@ -116,8 +101,69 @@ app.get('/getPatientsinPharmacy',(req, res) => {
     .catch((err) => console.log(err));
 });
 
+const FBAuth = (req, res, next) => {
+    let idToken;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        idToken = req.headers.authorization.split('Bearer ')[1];
+    } else {
+        console.error('No token found')
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    admin
+        .auth().verifyIdToken(idToken)
+            .then(decodedToken => {
+            req.user = decodedToken;
+            console.log(decodedToken);
+            return db.collection('pharmacies')
+                .where('pharmacyID', '==', req.user.uid)
+                .limit(1)
+                .get();
+        })
+        .then(data => {
+            req.user.name = data.docs[0].data().name;
+            return next();
+        })
+        .catch( err => {
+            console.error('Error in verify token', err);
+            return res.status(403).json(err);
+        })
+}
+
+// function to search a specific patient
+app.get('/findPatient', (req, res) => {
+    // const patientRef = db.collection('patients');
+    // const patient = {
+    //     name: 'Jose Santos'
+    //     sex:  req.body.sex,
+    //     cell_phone: req.body.cell_phone
+    // }
+    db.collection('patients').where('cell_phone', '==', '4073333333').get().then(data => {
+        let found = [];
+        data.forEach(doc => {
+            found.push({
+                patientID: doc.id,
+                    address_line: doc.data().address_line,
+                    cell_phone: doc.data().cell_phone,
+                    city: doc.data().city,
+                    country: doc.data().country,
+                    createdBy: doc.data().createdBy,
+                    createdOn: doc.data().createdOn,
+                    lastModifiedOn: doc.data().lastModifiedOn,
+                    name: doc.data().name,
+                    postal_code: doc.data().postal_code,
+                    sex: doc.data().sex
+            });
+        });
+        return res.json(found);
+    })
+    .catch(err => console.log(err));
+})
+
+
+
 // function to input new pharmacy into database
-app.post('/pharmacy',(req, res) => {
+app.post('/createPharmacy',(req, res) => {
     const newPharmacy = {
         address_line: req.body.address_line,
         city: req.body.city,
@@ -128,48 +174,45 @@ app.post('/pharmacy',(req, res) => {
         name: req.body.name
     };
 
-    db
-        .collection('pharmacy')
+    db.collection('pharmacies')
         .add(newPharmacy)
-        .then(doc => {
+        .then((doc) => {
             res.json({ message: `document ${doc.id} created successfully`}); 
         })
-        .catch(err => {
+        .catch((err) => {
             res.status(500).json({ error: `something went wrong`});
             console.error(err);
-        })
-})
+        });
+});
 
-// function to input new patient into database
-app.post('/patients',(req, res) => {
-    if (req.method !== 'POST') {
-        return res.status(400).json({ error: 'Wrong method. Should be POST method'});
-    }
+app.post('/createPatient', FBAuth, (req, res) => {
+    
     const newPatient = {
         address_line: req.body.address_line,
         city: req.body.city,
         country: req.body.country,
-        createdBy: req.body.createdBy,
+        createdBy: req.user.name,
         createdOn: new Date(). toISOString(),
         lastModifiedOn: new Date(). toISOString(),
         postal_code: req.body.postal_code,
         name: req.body.name,
         sex: req.body.sex,
-        cell_phone: req.body.cell_phone,
-        
+        cell_phone: req.body.cell_phone 
     };
-
-    db
-        .collection('patients')
+    
+    db.collection('patients')
         .add(newPatient)
-        .then(doc => {
+        .then((doc) => {
             res.json({ message: `document ${doc.id} created successfully`}); 
+            let id = doc.id;
+            doc.update({ patientID: id});
         })
-        .catch(err => {
+        .catch((err) => {
             res.status(500).json({ error: `something went wrong`});
             console.error(err);
-        })
-})
+        });    
+});
+
 
 const isEmpty = (string) => {
     if(string.trim() === '') return true;
@@ -177,7 +220,7 @@ const isEmpty = (string) => {
 }
 
 const isEmail = (email) => {
-    const regEx = 	/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    const regEx =   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     if(email.match(regEx)) return true;
     else return false;
 }
@@ -214,7 +257,7 @@ app.post('/signup', (req, res) => {
 
     // Validate data
     let token, pharmacyID;
-    db.doc(`/pharmacy/${newPharmacy.name}`).get()
+    db.doc(`/pharmacies/${newPharmacy.name}`).get()
         .then(doc => {
             if (doc.exists) {
                 return res.status(400).json({name: 'this name is already taken'});
@@ -236,12 +279,12 @@ app.post('/signup', (req, res) => {
                 //city: newPharmacy.city,
                 //country: newPharmacy.country,
                 //createdBy: newPharmacy.createdBy,
-                createdOn: new Date(). toISOString(),
                 //postal_code: newPharmacy.postal_code,
+                createdOn: new Date(). toISOString(),
                 name: newPharmacy.name,
                 pharmacyID: pharmacyID
             };
-            db.doc(`/pharmacy/${newPharmacy.name}`).set(pharmacyCredentials);
+            db.doc(`/pharmacies/${newPharmacy.name}`).set(pharmacyCredentials);
         })
         .then(() => {
             return res.status(201).json({ token });
