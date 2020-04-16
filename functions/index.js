@@ -24,6 +24,7 @@ const db = admin.firestore();
 app.get('/pharmacy', (req, res) => {
     db
         .collection('pharmacies')
+        .orderBy('createdOn', 'desc')
         .get()
         .then((data) => {
             let pharmacies = [];
@@ -49,6 +50,7 @@ app.get('/pharmacy', (req, res) => {
 app.get('/patients', (req, res) => {
     db
         .collection('patients')
+        .orderBy('createdOn', 'desc')
         .get()
         .then((data) => {
             let patients = [];
