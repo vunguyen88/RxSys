@@ -5,7 +5,7 @@ const app = require('express')();
 const FBAuth = require('./util/fbAuth');
 
 const { getAllPatients, getPatientsinPharmacy, createPatient, findPatient } = require('./handlers/patients');
-const { getAllpharmacies, createPharmacy, signup, login } = require('./handlers/pharmacies');
+const { getAllpharmacies, createPharmacy, signup, login, addPharmacyDetails } = require('./handlers/pharmacies');
 
 
 // Patients route
@@ -20,18 +20,7 @@ app.get('/pharmacy', getAllpharmacies);
 app.post('/createPharmacy', createPharmacy);
 app.post('/signup', signup);
 app.post('/login', login);
-
-
-
-
-
-
-
-
-
-
-
-
+app.post('/addPharmacyDetails', FBAuth, addPharmacyDetails);
 
 
 // https://baseurl.com/api/

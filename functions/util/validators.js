@@ -50,3 +50,13 @@ exports.validateLoginData = (data) => {
     }
 
 }
+
+exports.reducePharmacyDetails = (data) => {
+    let pharmacyDetails = {};
+
+    if(!isEmpty(data.address_line.trim())) pharmacyDetails.address_line = data.address_line;
+    if(!isEmpty(data.city.trim())) pharmacyDetails.city = data.city;
+    if(!isEmpty(data.country.trim())) pharmacyDetails.country = data.country;
+    if(!isEmpty(data.postal_code.trim())) pharmacyDetails.postal_code = data.postal_code;
+    return pharmacyDetails;
+};

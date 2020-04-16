@@ -4,7 +4,7 @@ const firebase = require('firebase');
 const config = require('../util/config');
 firebase.initializeApp(config);
 
-const { validateSignupData, validateLoginData } = require('../util/validators');
+const { validateSignupData, validateLoginData, reducePharmacyDetails } = require('../util/validators');
 
 exports.getAllpharmacies = (req, res) => {
     db
@@ -84,11 +84,7 @@ exports.signup = (req, res) => {
         .then((idToken) => {
             token = idToken;
             const pharmacyCredentials = {
-                //address_line: newPharmacy.address_line,
-                //city: newPharmacy.city,
-                //country: newPharmacy.country,
-                //createdBy: newPharmacy.createdBy,
-                //postal_code: newPharmacy.postal_code,
+                email:req.body.email,
                 createdOn: new Date(). toISOString(),
                 name: newPharmacy.name,
                 pharmacyID: pharmacyID
@@ -132,4 +128,17 @@ exports.login = (req, res) => {
             }
             return res.status(500).json({error: err.code});
         })  
+}
+
+// Add pharmacy details
+exports.addPharmacyDetails = (req, res) => {
+    let pharmacyDetails = reducePharmacyDetails(req.body);
+    db.doc(`/pharmacies/${req.user.name}`).update(pharmacyDetails)
+        .then(() => {
+            return res.json({ message: 'Details added successfully'});
+        })
+        .catch((err) => {
+            console.error(err);
+            return res.status(500).json({error: err.code});
+        });
 }
