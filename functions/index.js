@@ -134,13 +134,19 @@ const FBAuth = (req, res, next) => {
 
 // function to search a specific patient
 app.get('/findPatient', (req, res) => {
-    // const patientRef = db.collection('patients');
-    // const patient = {
-    //     name: 'Jose Santos'
-    //     sex:  req.body.sex,
-    //     cell_phone: req.body.cell_phone
-    // }
-    db.collection('patients').where('cell_phone', '==', '4073333333').get().then(data => {
+    //const patientRef = db.collection('patients');
+    const patient = {
+        name: req.body.name,
+        //sex:  req.body.sex,
+        cell_phone: req.body.cell_phone,
+        //createdBy: req.body.createdBy
+    }
+    db.collection('patients')
+        .where('cell_phone', '==', req.body.cell_phone)
+        .where('name', '==', req.body.name)
+        .where('sex', '==', req.body.sex)
+        .get()
+        .then(data => {
         let found = [];
         data.forEach(doc => {
             found.push({
