@@ -4,7 +4,7 @@ const app = require('express')();
 
 const FBAuth = require('./util/fbAuth');
 
-const { getAllPatients, getPatientsinPharmacy, createPatient, findPatient } = require('./handlers/patients');
+const { getAllPatients, getPatientsinPharmacy, createPatient, findPatient, updatePatientInfo } = require('./handlers/patients');
 const { getAllpharmacies, createPharmacy, signup, login, addPharmacyDetails } = require('./handlers/pharmacies');
 
 
@@ -12,6 +12,7 @@ const { getAllpharmacies, createPharmacy, signup, login, addPharmacyDetails } = 
 app.get('/patients', getAllPatients);
 app.get('/getPatientsinPharmacy', getPatientsinPharmacy); // function to get all the patients inside pharmacy collection
 app.post('/createPatient', FBAuth, createPatient);
+app.post('/updatePatientInfo', FBAuth, updatePatientInfo);
 app.post('/findPatient', findPatient);
 
 

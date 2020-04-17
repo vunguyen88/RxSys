@@ -1,5 +1,7 @@
 const { db } = require('../util/admin');
 
+const { reducePatientInfo } = require('../util/validators');
+
 exports.getAllPatients = (req, res) => {
     db
         .collection('patients')
@@ -115,4 +117,17 @@ exports.findPatient = (req, res) => {
         return res.json(found);
     })
     .catch(err => console.log(err));
+}
+
+exports.updatePatientInfo = (req, res) => {
+    let patientInfo = reducePatientInfo(req.body);
+    db.doc(`/patients/${req.headers.id}`)
+        .update(patientInfo)
+        .then(() => {
+            return res.json({ message: 'Patient info updated successfully'});
+        })
+        .catch((err) => {
+            console.error(err);
+            return res.status(500).json({error: err.code});
+        });
 }

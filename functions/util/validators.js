@@ -60,3 +60,15 @@ exports.reducePharmacyDetails = (data) => {
     if(!isEmpty(data.postal_code.trim())) pharmacyDetails.postal_code = data.postal_code;
     return pharmacyDetails;
 };
+
+exports.reducePatientInfo = (data) => {
+    let patientInfo = {};
+
+    if(!isEmpty(data.address_line.trim())) patientInfo.address_line = data.address_line;
+    if(!isEmpty(data.city.trim())) patientInfo.city = data.city;
+    if(!isEmpty(data.cell_phone.trim())) patientInfo.cell_phone = data.cell_phone;
+    if(!isEmpty(data.postal_code.trim())) patientInfo.postal_code = data.postal_code;
+    if(!isEmpty(data.name.trim())) patientInfo.name = data.name;
+
+    return patientInfo;
+};
