@@ -16,7 +16,8 @@ exports.addMedication = (req, res) => {
     //     .add(medication)
 
     // Create new doc with set ID
-    db.doc(`/patients/${req.headers.id}`).collection('medications').doc(newMed.name)
+    db
+        .doc(`/patients/${req.headers.id}`).collection('medications').doc(newMed.name)
         .set(newMed)
         .then((doc) => {
             res.json({ message: `document ${doc.id} created successfully`}); 
@@ -29,4 +30,26 @@ exports.addMedication = (req, res) => {
         })
 }
 
+exports.getMedList = (req, res) => {
+    db
+        .doc(`/patients/${req.headers.id}`).collection('medications')
+        .orderBy('createdOn', 'desc')
+        .get()
+        .then((data) => {
+            let medList = [];
+            data.forEach((doc) => {
+                medList.push({
+                    name: doc.data().name,
+                    createdBy: doc.data().createdBy,
+                    createdOn: doc.data().createdOn,
+                    lastModifiedOn: doc.data().lastModifiedOn,
+                    dosage: doc.data().dosage,
+                    strength: doc.data().strength,
+                    timing: doc.data().timing
+                });
+        });
+        return res.json(medList);
+    })
+    .catch((err) => console.log(err));
+}
     

@@ -6,7 +6,7 @@ const FBAuth = require('./util/fbAuth');
 
 const { getAllPatients, getPatientsinPharmacy, createPatient, findPatient, updatePatientInfo } = require('./handlers/patients');
 const { getAllpharmacies, createPharmacy, signup, login, addPharmacyDetails } = require('./handlers/pharmacies');
-const { addMedication } = require('./handlers/medications');
+const { addMedication, getMedList } = require('./handlers/medications');
 
 
 // Patients route
@@ -24,8 +24,11 @@ app.post('/signup', signup);
 app.post('/login', login);
 app.post('/addPharmacyDetails', FBAuth, addPharmacyDetails);
 
+
 // Medication route
 app.post('/addMedication', FBAuth, addMedication);
+app.get('/getMedList', FBAuth, getMedList);
+
 
 // https://baseurl.com/api/
 exports.api = functions.https.onRequest(app);
