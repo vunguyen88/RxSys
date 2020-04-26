@@ -10,7 +10,7 @@ const { addMedication, getMedList } = require('./handlers/medications');
 
 
 // Patients route
-app.get('/patients', getAllPatients);
+app.get('/patients', FBAuth, getAllPatients);
 app.get('/getPatientsinPharmacy', getPatientsinPharmacy); // function to get all the patients inside pharmacy collection
 app.post('/createPatient', FBAuth, createPatient);
 app.put('/updatePatientInfo', FBAuth, updatePatientInfo);
