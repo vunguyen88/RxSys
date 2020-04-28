@@ -17,7 +17,7 @@ exports.addMedication = (req, res) => {
 
     // Create new doc with set ID
     db
-        .doc(`/patients/${req.headers.id}`).collection('medications').doc(newMed.name)
+        .doc(`/patients/${req.params.patientId}`).collection('medications').doc(newMed.name)
         .set(newMed)
         .then((doc) => {
             res.json({ message: `document ${doc.id} created successfully`}); 
@@ -28,6 +28,35 @@ exports.addMedication = (req, res) => {
             res.status(500).json({ error: `something went wrong`});
             console.error(err);
         })
+}
+
+exports.addMed = (req, res) => {
+    const newMed = {
+        name: req.body.name,
+        strength: req.body.strength, // ex. (500mg)
+        dosage: req.body.dosage, // ex. (Two Tablets) or (5ml)
+        frequency: req.body.frequency, // ex. (Twice daily) or (Once Daily)
+        timing: req.body.timing,
+        createdBy: req.user.name,
+        patientId: req.params.patientId,
+        createdOn: new Date(). toISOString(), // Date of original creation
+        lastModifiedOn: new Date(). toISOString(),
+    };
+
+    db.doc(`/patients/${req.params.patientId}`).get()
+    .then(doc => {
+        if(!doc.exists) {
+            return res.status(404).json({ error: "Patient not found" });
+        }
+        return db.collection('medications').add(newMed);
+    })
+    .then(() => {
+        res.json(newMed);
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).json({ err: 'Something wrong' });
+    });
 }
 
 exports.getMedList = (req, res) => {
@@ -52,4 +81,6 @@ exports.getMedList = (req, res) => {
     })
     .catch((err) => console.log(err));
 }
+
+
     

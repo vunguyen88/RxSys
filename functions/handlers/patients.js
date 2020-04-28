@@ -131,3 +131,15 @@ exports.updatePatientInfo = (req, res) => {
             return res.status(500).json({error: err.code});
         });
 }
+
+exports.deletePatient = (req, res) => {
+    //let id = req.headers.id;
+    db.collection('patients').doc('D8pO3CbffJoX7FgGKCPk').delete()
+    .then(() => {
+        return res.json({ message: 'Patient info updated successfully'});
+    })
+    .catch((err) => {
+        console.error(err);
+        return res.status(500).json({error: err.code});
+    });
+}
