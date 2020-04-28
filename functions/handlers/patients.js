@@ -29,6 +29,30 @@ exports.getAllPatients = (req, res) => {
     .catch((err) => console.log(err));
 }
 
+exports.getPatient = (req, res) => {
+    let patientData = {};
+    db.doc(`/patients/${req.params.patientId}`).get()
+    .then(doc => {
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+        patientData = doc.data();
+        patientData.patientId = doc.id;
+        return db.collection('medications').where('patientId', '==', req.params.patientId).get();
+    })
+    .then(data => {
+        patientData.medications = [];
+        data.forEach(doc => {
+            patientData.medications.push(doc.data())
+        });
+        return res.json(patientData);
+    })
+    .catch(err => {
+        console.error(err);
+        res.status(500).json({ error: err.code });
+    });
+};
+
 exports.getPatientsinPharmacy = (req, res) => {
     db
         .collection('pharmacy/WARaUoZfeimCIsk4FtPQ/patients')
@@ -130,16 +154,4 @@ exports.updatePatientInfo = (req, res) => {
             console.error(err);
             return res.status(500).json({error: err.code});
         });
-}
-
-exports.deletePatient = (req, res) => {
-    //let id = req.headers.id;
-    db.collection('patients').doc('D8pO3CbffJoX7FgGKCPk').delete()
-    .then(() => {
-        return res.json({ message: 'Patient info updated successfully'});
-    })
-    .catch((err) => {
-        console.error(err);
-        return res.status(500).json({error: err.code});
-    });
 }
