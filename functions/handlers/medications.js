@@ -50,8 +50,11 @@ exports.addMed = (req, res) => {
         }
         return db.collection('medications').add(newMed);
     })
-    .then(() => {
-        res.json(newMed);
+    .then((doc) => {
+        //res.json(newMed);
+        res.json({ message: `document ${doc.id} added successfully` });
+        let id = doc.id;
+        doc.update({ drugId: id});
     })
     .catch(err => {
         console.log(err);
@@ -81,6 +84,7 @@ exports.getMedList = (req, res) => {
     })
     .catch((err) => console.log(err));
 }
+
 
 
     
