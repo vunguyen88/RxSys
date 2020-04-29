@@ -25,7 +25,7 @@ const {
 const { 
     addMedication,
     getMedList, 
-    addMed 
+    addMed, 
 } = require('./handlers/medications');
 
 
@@ -36,6 +36,7 @@ app.get('/patient/:patientId', FBAuth, getPatient);
 app.post('/createPatient', FBAuth, createPatient);
 app.put('/updatePatientInfo', FBAuth, updatePatientInfo);
 app.post('/findPatient', findPatient);
+app.delete('/patient/:patientId', FBAuth, deletePatient);
 
 
 // Pharmacy route

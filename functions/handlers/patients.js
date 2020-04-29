@@ -155,3 +155,27 @@ exports.updatePatientInfo = (req, res) => {
             return res.status(500).json({error: err.code});
         });
 }
+
+exports.deletePatient = (req, res) => {
+    const document = db.doc(`/patients/${req.params.patientId}`);
+    document.get()
+    .then(doc => {
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'patient not found' })
+        }
+        if (doc.data().createdBy !== req.user.name) {
+            return res.status(403).json({ error: 'Unauthorized'});
+        } else {
+            return document.delete();
+        }
+    })
+    .then(() => {
+        res.json ({ message: ' Patient delete successfully'})
+    })
+    .catch(err => {
+        console.error(err);
+        return res.status(500).json({ error: err.code });
+    })
+}
+
+
