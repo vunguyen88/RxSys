@@ -145,7 +145,7 @@ exports.findPatient = (req, res) => {
 
 exports.updatePatientInfo = (req, res) => {
     let patientInfo = reducePatientInfo(req.body);
-    db.doc(`/patients/${req.headers.id}`)
+    db.doc(`/patients/${req.params.patientId}`)
         .update(patientInfo)
         .then(() => {
             return res.json({ message: 'Patient info updated successfully'});

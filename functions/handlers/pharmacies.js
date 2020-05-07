@@ -133,7 +133,7 @@ exports.login = (req, res) => {
 // Add pharmacy details
 exports.addPharmacyDetails = (req, res) => {
     let pharmacyDetails = reducePharmacyDetails(req.body);
-    db.doc(`/pharmacies/${req.user.name}`).update(pharmacyDetails)
+    db.doc(`/pharmacies/${req.params.pharmacyName}`).update(pharmacyDetails)
         .then(() => {
             return res.json({ message: 'Details added successfully'});
         })

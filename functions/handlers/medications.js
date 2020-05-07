@@ -51,8 +51,7 @@ exports.addMed = (req, res) => {
         return db.collection('medications').add(newMed);
     })
     .then((doc) => {
-        //res.json(newMed);
-        //res.json({ message: `document ${doc} added successfully` });
+        res.json({ message: `document ${doc.id} added successfully` });
         let id = doc.id;
         doc.update({ drugId: id});
     })
@@ -62,9 +61,41 @@ exports.addMed = (req, res) => {
     });
 }
 
+exports.getPatientMedList = (req, res) => {
+    db
+        .collection('medications')
+        .where('patientId', '==', req.params.patientId)
+        .get()
+        .then(data => {
+            if (data.docs[0].data().createdBy !== req.user.name) {
+                return res.status(403).json({ error: 'Unauthorized'});
+            } else {
+            //console.log('info from user  ',data.docs[0].data().createdBy);
+            let medList = [];
+            data.forEach(doc => {
+                //console.log('data from doc ',doc)
+                medList.push({
+                    drugId: doc.id,
+                    name: doc.data().name,
+                    createdBy: doc.data().createdBy,
+                    createdOn: doc.data().createdOn,
+                    lastModifiedOn: doc.data().lastModifiedOn,
+                    dosage: doc.data().dosage,
+                    strength: doc.data().strength,
+                    timing: doc.data().timing
+                });
+            });
+            return res.json(medList);
+        }
+        })
+        
+        .catch((err) => console.log(err));
+}
+
 exports.getMedList = (req, res) => {
     db
-        .doc(`/patients/${req.headers.id}`).collection('medications')
+        // .doc(`/patients/${req.headers.id}`).collection('medications')
+        .collection('medications')
         .orderBy('createdOn', 'desc')
         .get()
         .then((data) => {
