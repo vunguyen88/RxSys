@@ -58,18 +58,19 @@ exports.signup = (req, res) => {
         email: req.body.email,
         password: req.body.password,
         //confirmPassword: req.body.confirmPassword,
-        name: req.body.name
+        name: req.body.name,
+        isCorporate: req.body.isCorporate
     };
 
     const { valid, errors } = validateSignupData(newPharmacy);
     if(!valid) return res.status(400).json(errors);
 
     // Validate data
-    let token, pharmacyID;
+    let token, pharmacyId;
     db.doc(`/pharmacies/${newPharmacy.name}`).get()
         .then(doc => {
             if (doc.exists) {
-                return res.status(400).json({name: 'this name is already taken'});
+                return res.status(400).json({error: 'this name is already taken'});
             } else {
                 return firebase
                         .auth()
@@ -78,7 +79,8 @@ exports.signup = (req, res) => {
         })
         .then((data) => {
             // pass uid of data retrieve into pharmacyID
-            pharmacyID = data.user.uid;
+            //pharmacyID = data.user.uid;
+            pharmacyId = data.user.uid;
             return data.user.getIdToken();
         })
         .then((idToken) => {
@@ -87,7 +89,9 @@ exports.signup = (req, res) => {
                 email:req.body.email,
                 createdOn: new Date(). toISOString(),
                 name: newPharmacy.name,
-                pharmacyID: pharmacyID
+                //pharmacyID: pharmacyID,
+                pharmacyId: pharmacyId,
+                isCorporate: newPharmacy.isCorporate
             };
             db.doc(`/pharmacies/${newPharmacy.name}`).set(pharmacyCredentials);
         })
@@ -97,7 +101,7 @@ exports.signup = (req, res) => {
         .catch((err) => {
             console.error(err);
             if(err.code === "auth/email-already-in-use") {
-                return res.status(400).json({ email: 'email already in used' })
+                return res.status(400).json({ error: 'email already in used' })
             } else {
                 return res.status(500).json({ error: err.code});
             }
@@ -107,7 +111,7 @@ exports.signup = (req, res) => {
 exports.login = (req, res) => {
     const pharmacy = {
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
     }
 
     const { valid, errors } = validateLoginData(pharmacy);
@@ -124,7 +128,10 @@ exports.login = (req, res) => {
         .catch((err) => {
             console.error(err);
             if(err.code === "auth/wrong-password") {
-                return res.status(403).json({general: "Wrong password"});
+                return res.status(403).json({error: "Wrong password"});
+            }
+            if(err.code === "auth/user-not-found") {
+                return res.status(400).json({error: "User not found"})
             }
             return res.status(500).json({error: err.code});
         })  
@@ -133,12 +140,24 @@ exports.login = (req, res) => {
 // Add pharmacy details
 exports.addPharmacyDetails = (req, res) => {
     let pharmacyDetails = reducePharmacyDetails(req.body);
-    db.doc(`/pharmacies/${req.params.pharmacyName}`).update(pharmacyDetails)
-        .then(() => {
-            return res.json({ message: 'Details added successfully'});
-        })
-        .catch((err) => {
-            console.error(err);
-            return res.status(500).json({error: err.code});
-        });
+    let pharmacyId;
+    db.doc(`/pharmacies/${req.params.pharmacyName}`)
+    .get().then(doc => {
+        if(doc.exists) {
+            pharmacyId = doc.data().pharmacyID;
+            console.log('document data:', doc.data());
+            return db.doc(`/pharmacies/${req.params.pharmacyName}`).update(pharmacyDetails)
+        }
+    })
+    .then(() => {
+        return res.json({
+            pharmacyName: `${req.params.pharmacyName}`,
+            pharmacyId:`${pharmacyId}`,
+            ...pharmacyDetails
+        }); 
+    })
+    .catch((err) => {
+        console.error(err);
+        return res.status(500).json({error: err.code});
+    });
 }

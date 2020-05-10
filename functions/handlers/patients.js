@@ -94,32 +94,79 @@ exports.createPatient = (req, res) => {
         sex: req.body.sex,
         cell_phone: req.body.cell_phone 
     };
-    
+    //////
+    // let token, pharmacyId;
+    // db.doc(`/pharmacies/${newPharmacy.name}`).get()
+    //     .then(doc => {
+    //         if (doc.exists) {
+    //             return res.status(400).json({error: 'this name is already taken'});
+    //         } else {
+    //             return firebase
+    //                     .auth()
+    //                     .createUserWithEmailAndPassword(newPharmacy.email, newPharmacy.password)
+    //         }
+    //     })
+    ////
     db.collection('patients')
-        .add(newPatient)
-        .then((doc) => {
-            res.json({ message: `document ${doc.id} created successfully`}); 
-            let id = doc.id;
-            doc.update({ patientID: id});
+        .where('cell_phone', '==', req.body.cell_phone)
+        .get()
+        .then(data => {
+            console.log('=================Data from collection with where =================',data.docs[0].data().cell_phone);
+            if(data.docs[0].data().cell_phone === req.body.cell_phone) {
+                console.log('++++++++++++inside return same phone number++++++++++++++++');
+                return res.json({error: 'this phone number is already taken'});
+            } else {
+                console.log('===============inside create new patient=============')
+                //return db.collection('patients').add(newPatient)
+                return data.query.firestore.doc(newPatient);
+            }}
+        )
+        
+        // db.collection('patients').add(newPatient)
+        .then(doc => {
+            res.status(200).json({
+                message: `doc ${doc.id} created sucessful`
+                // patientId: `${doc.id}`,
+                // ...newPatient
+            });
         })
         .catch((err) => {
-            res.status(500).json({ error: `something went wrong`});
+            res.status(500).json({ error: `something went wrong` });
             console.error(err);
-        });    
+        });
+     
+
+    //////////
+    // db.collection('patients')
+    //     .add(newPatient)
+    //     .then((doc) => {
+    //         //res.json({ message: `document ${doc.id} created successfully`}); 
+    //         res.json({
+    //             patientId: `${doc.id}`,
+    //             ...newPatient
+    //         }); 
+    //         console.log('Info about doc#####################: ',doc.id);
+    //         let id = doc.id;
+    //         doc.update({ patientId: id});
+    //     })
+    //     .catch((err) => {
+    //         res.status(500).json({ error: `something went wrong`});
+    //         console.error(err);
+    //     });    
 }
 
 exports.findPatient = (req, res) => {
     //const patientRef = db.collection('patients');
     const patient = {
-        name: req.body.name,
+        //name: req.body.name,
         //sex:  req.body.sex,
         cell_phone: req.body.cell_phone,
         //createdBy: req.body.createdBy
     }
     db.collection('patients')
         .where('cell_phone', '==', req.body.cell_phone)
-        .where('name', '==', req.body.name)
-        .where('sex', '==', req.body.sex)
+        //.where('name', '==', req.body.name)
+        //.where('sex', '==', req.body.sex)
         .get()
         .then(data => {
         let found = [];
@@ -145,15 +192,30 @@ exports.findPatient = (req, res) => {
 
 exports.updatePatientInfo = (req, res) => {
     let patientInfo = reducePatientInfo(req.body);
+    let docInfo, newData, patientId, createdBy, createdOn, lastModifiedOn;
     db.doc(`/patients/${req.params.patientId}`)
-        .update(patientInfo)
-        .then(() => {
-            return res.json({ message: 'Patient info updated successfully'});
-        })
-        .catch((err) => {
-            console.error(err);
-            return res.status(500).json({error: err.code});
-        });
+    .get()
+    .then(doc => {
+        if(doc.exists) {
+            patientId = doc.data().patientId;
+            createdBy = doc.data().createdBy;
+            createdOn = doc.data().createdOn;
+            lastModifiedOn = new Date(). toISOString();
+            docInfo = {patientId, createdBy, createdOn, lastModifiedOn};
+            newData = {...docInfo, ...patientInfo}
+            console.log('document data:', doc.data());
+            return db.doc(`/patients/${req.params.patientId}`).update(newData)
+        }
+    })
+
+    
+    .then(() => {
+        return res.json( newData );
+    })
+    .catch((err) => {
+        console.error(err);
+        return res.status(500).json({error: err.code});
+    });
 }
 
 exports.deletePatient = (req, res) => {

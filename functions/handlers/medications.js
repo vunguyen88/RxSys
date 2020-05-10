@@ -1,5 +1,6 @@
 const { db } = require('../util/admin');
 
+// No longer used
 exports.addMedication = (req, res) => {
     const newMed = {
         name: req.body.name,
@@ -51,7 +52,11 @@ exports.addMed = (req, res) => {
         return db.collection('medications').add(newMed);
     })
     .then((doc) => {
-        res.json({ message: `document ${doc.id} added successfully` });
+        //res.json({ message: `document ${doc.id} added successfully` });
+        res.json({
+            drugId:`${doc.id}`,
+            ...newMed
+        });
         let id = doc.id;
         doc.update({ drugId: id});
     })
