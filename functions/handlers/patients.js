@@ -106,28 +106,38 @@ exports.createPatient = (req, res) => {
     //                     .createUserWithEmailAndPassword(newPharmacy.email, newPharmacy.password)
     //         }
     //     })
-    ////
-    db.collection('patients')
-        .where('cell_phone', '==', req.body.cell_phone)
-        .get()
-        .then(data => {
-            console.log('=================Data from collection with where =================',data.docs[0].data().cell_phone);
-            if(data.docs[0].data().cell_phone === req.body.cell_phone) {
-                console.log('++++++++++++inside return same phone number++++++++++++++++');
-                return res.json({error: 'this phone number is already taken'});
+    db.doc(`/patients/${newPatient.cell_phone}`).get()
+        .then(doc => {
+            if (doc.exists) {
+                return res.status(400).json({error: 'this phone number is already taken'});
             } else {
-                console.log('===============inside create new patient=============')
-                //return db.collection('patients').add(newPatient)
-                return data.query.firestore.doc(newPatient);
-            }}
-        )
+                return db.doc(`/patients/${newPatient.cell_phone}`).set(newPatient)
+            }
+        })
+    ////
+    //db.collection('patients')
+    //db.doc(`/pharmacies/${newPharmacy.name}`).set(pharmacyCredentials);
+    //db.doc(`/patients/${newPatient.cell_phone}`).set(newPatient)
+        // .where('cell_phone', '==', req.body.cell_phone)
+        // .get()
+        // .then(data => {
+        //     console.log('=================Data from collection with where =================',data.docs[0].data().cell_phone);
+        //     if(data.docs[0].data().cell_phone === req.body.cell_phone) {
+        //         console.log('++++++++++++inside return same phone number++++++++++++++++');
+        //         return res.json({error: 'this phone number is already taken'});
+        //     } else {
+        //         console.log('===============inside create new patient=============')
+        //         //return db.collection('patients').add(newPatient)
+        //         return data.query.firestore.doc(newPatient);
+        //     }}
+        // )
         
         // db.collection('patients').add(newPatient)
         .then(doc => {
             res.status(200).json({
-                message: `doc ${doc.id} created sucessful`
-                // patientId: `${doc.id}`,
-                // ...newPatient
+                //message: `doc ${doc.id} created sucessful`,
+                //patientId: `${doc.uid}`,
+                ...newPatient
             });
         })
         .catch((err) => {
@@ -196,15 +206,17 @@ exports.updatePatientInfo = (req, res) => {
     db.doc(`/patients/${req.params.patientId}`)
     .get()
     .then(doc => {
+        console.log('document data:', doc.data());
+        //console.log('console reach here $$$$$$$$$$$$$$$$');
         if(doc.exists) {
-            patientId = doc.data().patientId;
+            patientId = doc.data().cell_phone;
             createdBy = doc.data().createdBy;
             createdOn = doc.data().createdOn;
-            lastModifiedOn = new Date(). toISOString();
+            lastModifiedOn = new Date().toISOString();
             docInfo = {patientId, createdBy, createdOn, lastModifiedOn};
-            newData = {...docInfo, ...patientInfo}
-            console.log('document data:', doc.data());
-            return db.doc(`/patients/${req.params.patientId}`).update(newData)
+            newData = {...docInfo, ...patientInfo};
+            
+            return db.doc(`/patients/${req.params.patientId}`).update(newData);
         }
     })
 
