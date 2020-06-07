@@ -29,6 +29,8 @@ exports.getAllPatients = (req, res) => {
     .catch((err) => console.log(err));
 }
 
+
+
 exports.getPatient = (req, res) => {
     let patientData = {};
     db.doc(`/patients/${req.params.patientId}`).get()

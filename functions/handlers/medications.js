@@ -1,5 +1,8 @@
 const { db } = require('../util/admin');
 
+var moment = require('moment');
+moment().format(); 
+
 // No longer used
 exports.addMedication = (req, res) => {
     const newMed = {
@@ -32,14 +35,32 @@ exports.addMedication = (req, res) => {
 }
 
 exports.addMed = (req, res) => {
+    let startDate = moment(req.body.startDate).format('YYYY-MM-DD'), 
+        currentDate = moment().format('YYYY-MM-DD'), 
+        nextMedDate = moment(startDate).add(req.body.frequency,'d').format('YYYY-MM-DD');
     const newMed = {
         name: req.body.name,
-        strength: req.body.strength, // ex. (500mg)
+        //strength: req.body.strength, // ex. (500mg)
         dosage: req.body.dosage, // ex. (Two Tablets) or (5ml)
-        frequency: req.body.frequency, // ex. (Twice daily) or (Once Daily)
-        timing: req.body.timing,
+        unit: req.body.unit,
+        frequency: req.body.frequency, // ex. (everyday) or (day interval) (specific day)
+        sunday:req.body.sunday,
+        monday:req.body.monday,
+        tuesday:req.body.tuesday,
+        wednesday:req.body.wednesday,
+        thursday:req.body.thursday,
+        friday:req.body.friday,
+        saturday:req.body.saturday,
+        timing: req.body.timing,  //ex. (empty stomach) or (after food)
+        startDate: startDate,//: moment().format('M,D,YYYY'),
+        currentDate: currentDate,//: moment(),
+        nextMedDate: nextMedDate,//: startDate.moment().add(1,'D'),
+        rxnumber: req.body.rxnumber,
         createdBy: req.user.name,
+        prescribedBy: req.body.prescribedBy,
         patientId: req.params.patientId,
+        pillLeft: req.body.pillLeft,
+        refill: req.body.refill,
         createdOn: new Date(). toISOString(), // Date of original creation
         lastModifiedOn: new Date(). toISOString(),
     };
@@ -149,6 +170,8 @@ exports.deleteMedication = (req, res) => {
     })
     
 }
+
+
 
 
     

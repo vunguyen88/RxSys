@@ -9,18 +9,21 @@ const { validateSignupData, validateLoginData, reducePharmacyDetails } = require
 exports.getAllpharmacies = (req, res) => {
     db
         .collection('pharmacies')
-        .orderBy('createdOn', 'desc')
+        //.orderBy('createdOn', 'desc')
         .get()
         .then((data) => {
+
             let pharmacies = [];
             data.forEach((doc) => {
                 pharmacies.push({
-                    pharmacyID: doc.id,
+                    pharmacyID: doc.data().pharmacyID,
                     address_line: doc.data().address_line,
+                    email: doc.data().email,
                     phone: doc.data().cell_phone,
+                    isCorporate: doc.data().isCorporate,
                     city: doc.data().city,
                     country: doc.data().country,
-                    createdBy: doc.data().createdBy,
+                    //createdBy: doc.data().createdBy,
                     createdOn: doc.data().createdOn,
                     name: doc.data().name,
                     postal_code: doc.data().postal_code,
@@ -136,6 +139,48 @@ exports.login = (req, res) => {
             return res.status(500).json({error: err.code});
         })  
 }
+
+// Change user password
+exports.changePassword = (req, res) => {
+    let newPassword = req.body.newPassword;
+    console.log('#################', newPassword);
+
+    firebase.auth().currentUser.updatePassword(newPassword)
+        .then(() => {
+            //console.log('#################', newPassword);
+            return res.json({message: "password updated."});
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+}
+
+// Send an email to reset password
+exports.resetPassword = (req, res) => {
+     
+    let email = req.params.email;
+    firebase.auth()
+        .sendPasswordResetEmail(email).then(()=>{
+            return res.json({message:"code sent"});
+        })
+        .catch((error) => {
+            console.log(err);
+        })
+}
+
+// Signout 
+exports.signOut = (req, res) => {
+    firebase.auth()
+        .signOut()
+        .then(() => {
+            return res.json({message: "Signout successfully"});
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+}
+
+
 
 // Add pharmacy details
 exports.addPharmacyDetails = (req, res) => {
