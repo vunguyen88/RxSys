@@ -42,6 +42,7 @@ const {
     getAllPatientsMobile,
 } = require('./handlers/mobile');
 
+
 // Pharmacists routes
 app.post('/signup', signup); // tested
 app.post('/login', login); // tested
@@ -51,22 +52,25 @@ app.post('/password', resetPassword); // tested
 app.get('/signout', FBAuth, signOut); // tested
 app.get('/pharmacists', FBAuth, getListofPharmacists); // tested
 
+
 // Patients routes
-app.get('/patients', FBAuth, getAllPatients); // Working
-app.get('/getPatientsinPharmacy', getPatientsinPharmacy); // No longer used //function to get all the patients inside pharmacy collection
+app.post('/patients', FBAuth, createPatient); // tested
+app.get('/patients', FBAuth, getAllPatients); // tested
 app.get('/patients/:patient', FBAuth, getPatient); // Working
-app.post('/patients', FBAuth, createPatient); // Checked
 app.put('/patients/:patient', FBAuth, updatePatientInfo); // Working
 app.get('/patients/search/:patient', findPatient); // Need fix
 app.delete('/patients/:patient', FBAuth, deletePatient); //Working
+//app.get('/getPatientsinPharmacy', getPatientsinPharmacy); // No longer used //function to get all the patients inside pharmacy collection
+
 
 // Medications routes
-app.post('/patient/:patient/addMedication', FBAuth, addMedication); // no longer used
-app.post('/patient/:patient/medication', FBAuth, addMed); //Working
-app.get('/patient/:patient/medication', FBAuth, getPatientMedList); // Working but need update
+app.post('/patient/:patient/medications', FBAuth, addMed); // tested
+app.get('/patient/:patient/medications', FBAuth, getPatientMedList); // Working but need update
 app.get('/getMedList', FBAuth, getMedList); // get all meds in medications collection // Working
 app.delete('/patient/:patient/medicationd/:medication', FBAuth, deleteMedication);
 app.delete('/patients/:patient/medication'); 
+//app.post('/patient/:patient/addMedication', FBAuth, addMedication); // no longer used
+
 // Mobile routes
 app.post('/patients/:patient/medications/:medication/mobileMedUpdate', mobileMedUpdate); // send update to firebase whether patient taking med or not
 app.get('/patients/:patient/getTodayMedList', getTodayMedList);
