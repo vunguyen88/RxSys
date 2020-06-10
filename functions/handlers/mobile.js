@@ -4,7 +4,7 @@ var moment = require('moment');
 moment().format(); 
 
 exports.mobileMedUpdate = (req, res) => {
-    let currentDate = moment().format('YYYY-MM-DD');
+    let currentDate = moment().utc();//format('YYYY-MM-DD');
     let startDate, frequency;
     // let timeUpdate = {
     //     //startDate = moment(req.body.startDate).format('YYYY-MM-DD'), 
@@ -12,7 +12,7 @@ exports.mobileMedUpdate = (req, res) => {
     //     nextMedDate = req.body.taken === 1 ? moment(startDate).add(req.body.frequency,'d').format('YYYY-MM-DD') : moment(startDate).add(1,'d').format('YYYY-MM-DD');
     // }
     let mobileUpdate = {
-        createdOn: new Date().toUTCString(),
+        createdOn: moment().utc(),//new Date().toUTCString(),
         //toISOString() "2020-05-20T03:22:42.245Z", 
         //toLocaleDateString() "5/19/2020",
         //toLocaleTimeString() "11:30:56 PM", 
@@ -21,22 +21,29 @@ exports.mobileMedUpdate = (req, res) => {
         //toLocaleString() "5/19/2020, 11:26:30 PM", 
         //toTimeString() "23:29:19 GMT-0400 (Eastern Daylight Time)",
         taken: req.body.taken,
-        missed: req.body.taken === 1 ? 0 : 1
+        missed: req.body.taken === true ? false : true
     }
-    db.doc(`/medications/${req.params.medId}`)
+    db.doc(`/medications/${req.params.medication}`)
         .get()
         .then(data => {
-            frequency = data.data().frequency
+            frequency = data.data().frequency,
+            startDate = data.data().startDate,
+            pillLeft = data.data().pillLeft,
+            dosage = data.data().dosage,
+            //if (moment(startDate).isBefore(currentDate))
             //console.log("###############", data.data().frequency)
-            return db.collection(`/medications/${req.params.medId}/tracking`).add(mobileUpdate)
+            db.collection(`/medications/${req.params.medication}/report`).add(mobileUpdate)
         })
         .then((data) => {
                     //console.log("data is ######################", data);
                     //res.json({ message: `medication for patient ${req.params.patientId} update successfully` });
-            return db.doc(`/medications/${req.params.medId}`).update(
+            return db.doc(`/medications/${req.params.medication}`).update(
                 {
                     currentDate: currentDate, 
-                    nextMedDate: req.body.taken === 1 ? moment(currentDate).add(frequency,'d').format('YYYY-MM-DD') : moment(currentDate).add(1,'d').format('YYYY-MM-DD')
+                    //nextMedDate: req.body.taken === true ? moment(currentDate).add(frequency,'d').format('YYYY-MM-DD') : moment(currentDate).add(1,'d').format('YYYY-MM-DD')
+                    nextMedDate: req.body.taken === true ? moment(currentDate).add(frequency,'d').utc() : moment(currentDate).add(1,'d').utc(),
+                    lastModifiedOn: moment().utc(),
+                    pillLeft: pillLeft - dosage,
                 } 
             )
         })
@@ -76,11 +83,11 @@ exports.mobileUpdateMedTracking = (req, res) => {
         .add()
 }
 
-exports.getTodayMedList = (req, res) => {
-    currentDate = "2020-05-30";//moment().format('YYYY-MM-DD');
+exports.mobileGetTodayMedList = (req, res) => {
+    currentDate = moment().format('MMMM D, YYYY'),//"2020-05-30";//moment().format('MMMM');
     db
         .collection('medications')
-        .where('patientId', '==', req.params.patientId)
+        .where('patientId', '==', req.params.patient)
         .where('nextMedDate', '==', currentDate)
         .get()
         .then(data => {
@@ -124,6 +131,49 @@ exports.getTodayMedList = (req, res) => {
         //}
         )
         
+        .catch((err) => console.log(err));
+}
+
+exports.mobileGetMedList = (req, res) => {
+    db
+        .collection('medications')
+        .where('patientId', '==', req.params.patient)
+        .get()
+        .then(data => {
+            let medList = [];
+            data.forEach(doc => {
+                //console.log('data from doc ',doc)
+                medList.push({
+                    drugId: doc.id,
+                    name: doc.data().name,
+                    strength: doc.data().strength,
+                    dosage: doc.data().dosage,
+                    type: doc.data().type,
+                    unit: doc.data().unit,
+                    frequency: doc.data().frequency,
+                    timing: doc.data().timing,
+                    sunday: doc.data().sunday,
+                    monday: doc.data().monday,
+                    tuesday: doc.data().tuesday,
+                    wednesday: doc.data().wednesday,
+                    thursday: doc.data().thursday,
+                    friday: doc.data().friday,
+                    saturday: doc.data().saturday,
+                    startDate: moment(doc.data().startDate).utc(), //moment(doc.data().startDate).format('MM-DD-YYYY'),
+                    currentDate: moment().format('MMMM D, YYYY'),//moment(doc.data().currentDate).utc(),
+                    nextMedDate: moment(doc.data().nextMedDate).utc(),
+                    rxnumber: doc.data().rxnumber,
+                    patientId: doc.data().patientId,
+                    pillLeft: doc.data().pillLeft,
+                    prescribedBy: doc.data().prescribedBy,
+                    refill: doc.data().refull,
+                    createdBy: doc.data().createdBy,
+                    createdOn: moment(doc.data().createdOn).utc(),
+                    lastModifiedOn: moment(doc.data().lastModifiedOn).utc(),
+                });
+            });
+            return res.json(medList);
+        }) 
         .catch((err) => console.log(err));
 }
 

@@ -33,12 +33,14 @@ const {
     addMed,
     getPatientMedList,
     deleteMedication,
+    deleteMeds,
     //mobileMedUpdate 
 } = require('./handlers/medications');
 
 const {
+    mobileGetTodayMedList,
     mobileMedUpdate,
-    getTodayMedList,
+    mobileGetMedList,
     getAllPatientsMobile,
 } = require('./handlers/mobile');
 
@@ -56,24 +58,26 @@ app.get('/pharmacists', FBAuth, getListofPharmacists); // tested
 // Patients routes
 app.post('/patients', FBAuth, createPatient); // tested
 app.get('/patients', FBAuth, getAllPatients); // tested
+app.delete('/patients/:patient', FBAuth, deletePatient); // tested
 app.get('/patients/:patient', FBAuth, getPatient); // Working
 app.put('/patients/:patient', FBAuth, updatePatientInfo); // Working
 app.get('/patients/search/:patient', findPatient); // Need fix
-app.delete('/patients/:patient', FBAuth, deletePatient); //Working
 //app.get('/getPatientsinPharmacy', getPatientsinPharmacy); // No longer used //function to get all the patients inside pharmacy collection
 
 
 // Medications routes
-app.post('/patient/:patient/medications', FBAuth, addMed); // tested
+app.post('/patients/:patient/medications', FBAuth, addMed); // tested
+app.delete('/patient/:patient/medicationd/:medication', FBAuth, deleteMedication); // tested
 app.get('/patient/:patient/medications', FBAuth, getPatientMedList); // Working but need update
 app.get('/getMedList', FBAuth, getMedList); // get all meds in medications collection // Working
-app.delete('/patient/:patient/medicationd/:medication', FBAuth, deleteMedication);
-app.delete('/patients/:patient/medication'); 
+app.delete('/patients/:patient/medicationss', deleteMeds); 
 //app.post('/patient/:patient/addMedication', FBAuth, addMedication); // no longer used
 
+
 // Mobile routes
-app.post('/patients/:patient/medications/:medication/mobileMedUpdate', mobileMedUpdate); // send update to firebase whether patient taking med or not
-app.get('/patients/:patient/getTodayMedList', getTodayMedList);
+app.get('/patients/:patient/medications', mobileGetMedList); // tested
+app.get('/patients/:patient/medications/current', mobileGetTodayMedList); // tested
+app.post('/patients/:patient/medications/:medication/mobileMedUpdate', mobileMedUpdate); // tested
 //app.get('/patient/:patientId/getPatientMedListMobile', getPatientMedListMobile);
 app.get('/patientsMobile', getAllPatientsMobile); // Working
 

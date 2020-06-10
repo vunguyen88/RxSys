@@ -57,13 +57,13 @@ exports.getListofPharmacists = (req, res) => {
 
 // Signup route
 exports.signup = (req, res) => {
-    
     const toBoolean = (input) => {
-        if(input==='yes' || input==='y' || input==='true' || input==='t') {
+        if(input==='yes' || input==='y' || input==='true' || input==='t' || input === true) {
             return true;
         } else return false;
     }
-    let input = toBoolean(req.body.isCorporate.toLowerCase());
+    
+    let input = toBoolean(req.body.isCorporate);
     const newPharmacist = {
         email: req.body.email.toLowerCase(),
         password: req.body.password,

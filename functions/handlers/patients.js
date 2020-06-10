@@ -33,14 +33,14 @@ exports.getAllPatients = (req, res) => {
 
 exports.getPatient = (req, res) => {
     let patientData = {};
-    db.doc(`/patients/${req.params.patientId}`).get()
+    db.doc(`/patients/${req.params.patient}`).get()
     .then(doc => {
         if (!doc.exists) {
             return res.status(404).json({ error: 'Patient not found' });
         }
         patientData = doc.data();
         patientData.patientId = doc.id;
-        return db.collection('medications').where('patientId', '==', req.params.patientId).get();
+        return db.collection('medications').where('patientId', '==', req.params.patient).get();
     })
     .then(data => {
         patientData.medications = [];
@@ -89,8 +89,8 @@ exports.createPatient = (req, res) => {
         city: req.body.city,
         country: req.body.country,
         createdBy: req.user.name,
-        createdOn: new Date(). toISOString(),
-        lastModifiedOn: new Date(). toISOString(),
+        createdOn: new Date(). toUTCString(),
+        lastModifiedOn: new Date(). toUTCString(),
         postal_code: req.body.postal_code,
         name: req.body.name,
         sex: req.body.sex,
@@ -233,7 +233,7 @@ exports.updatePatientInfo = (req, res) => {
 }
 
 exports.deletePatient = (req, res) => {
-    const document = db.doc(`/patients/${req.params.patientId}`);
+    const document = db.doc(`/patients/${req.params.patient}`);
     document.get()
     .then(doc => {
         if (!doc.exists) {
@@ -253,5 +253,38 @@ exports.deletePatient = (req, res) => {
         return res.status(500).json({ error: err.code });
     })
 }
+
+// exports.deletePatient = (req, res) => {
+//     //const document = db.doc(`/patients/${req.params.patient}`);
+//     medList = db.collection('medications').where('patientId', '==', req.params.patient)
+//     .get()
+//     .then(meds => {
+//         console.log('$$$$$$$QuerySnapshot$$$$$$', meds.docs[0]);
+//         let batch = db.batch();
+//         meds.forEach(doc => {
+//             console.log('@@@@@@@@@@@@@@@@@@', doc);
+//             batch.delete(doc)
+//             console.log('####after batch delete ####');
+//         });
+//         return batch.commit();
+//     })
+//     .then(() => {
+//         db.doc(`/patients/${req.params.patient}`).get();
+//         console.log('******************************');
+//         // res.json ({ message: ' Patient delete successfully'})
+//     })
+//     .then(doc =>{
+//         console.log('**********doc is********', doc);
+//         return doc.delete();
+//     })
+//     .then(() => {
+//         return res.json ({ message: ' Patient delete successfully'});
+//     })
+//     .catch(err => {
+//         console.error(err);
+//         return res.status(500).json({ error: err.code });
+//     })
+// }
+
 
 
